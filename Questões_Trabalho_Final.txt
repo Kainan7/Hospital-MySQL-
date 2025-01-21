@@ -1,0 +1,97 @@
+-- questão 01
+SELECT 
+    m.nome AS nome_medico,
+    em.nome AS especialidade,
+    COUNT(a.id_atendimento) AS total_atendimentos
+FROM 
+    atendimentos a
+JOIN 
+    medicos m ON a.id_medico = m.id_medico
+JOIN 
+    especialidade_medica em ON em.id_medico = m.id_medico
+WHERE 
+    a.id_paciente IN (
+        SELECT id_paciente
+        FROM atendimentos
+        GROUP BY id_paciente
+        HAVING COUNT(id_atendimento) > 3
+    )
+GROUP BY 
+    m.nome, em.nome
+ORDER BY 
+    total_atendimentos DESC;
+    
+-- questão 02
+SELECT 
+    p.nome AS nome_paciente,
+    e.data_realizacao AS data_exame,
+    e.tipo AS tipo_exame
+FROM 
+    exames e
+JOIN 
+    atendimentos a ON e.id_atendimento = a.id_atendimento
+JOIN 
+    pacientes p ON a.id_paciente = p.id_paciente
+WHERE 
+    e.resultado = 'pendente'
+    AND (a.diagnostico = 'hipertensão' OR a.diagnostico = 'diabetes');
+
+-- questão 03
+SELECT 
+    med.nome AS nome_medicamento,
+    COUNT(cm.id_medicamento) AS total_prescricoes,
+    em.nome AS especialidade_medica
+FROM 
+    cirurgia_medicamento cm
+JOIN 
+    medicamentos med ON cm.id_medicamento = med.id_medicamento
+JOIN 
+    cirurgias c ON cm.id_cirurgia = c.id_cirurgia
+JOIN 
+    medicos m ON c.id_medico = m.id_medico
+JOIN 
+    especialidade_medica em ON em.id_medico = m.id_medico
+WHERE 
+    em.nome = 'Cardiologia'
+GROUP BY 
+    med.nome, em.nome
+ORDER BY 
+    total_prescricoes DESC;
+
+-- questão 04
+SELECT 
+    m.nome AS nome_medico,
+    COUNT(a.id_atendimento) AS total_atendimentos
+FROM 
+    atendimentos a
+JOIN 
+    medicos m ON a.id_medico = m.id_medico
+WHERE 
+    a.data_hora >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+GROUP BY 
+    m.nome
+HAVING 
+    total_atendimentos > 5
+ORDER BY 
+    total_atendimentos DESC;
+    
+-- QUESTÃO 5: Identificar pacientes sem exames no último trimestre (limitando a 10.000 pacientes)
+
+SELECT 
+    p.nome AS nome_paciente,
+    COUNT(a.id_atendimento) AS total_atendimentos
+FROM 
+    pacientes p
+LEFT JOIN 
+    atendimentos a ON p.id_paciente = a.id_paciente
+LEFT JOIN 
+    exames e ON a.id_atendimento = e.id_atendimento
+    AND e.data_realizacao >= DATE_SUB(CURDATE(), INTERVAL 3 MONTH)
+WHERE 
+    e.id_exame IS NULL
+    AND p.id_paciente <= 10000 -- Limita aos primeiros 10.000 pacientes
+GROUP BY 
+    p.nome
+ORDER BY 
+    total_atendimentos DESC
+LIMIT 1000;

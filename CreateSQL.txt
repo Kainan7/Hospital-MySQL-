@@ -1,0 +1,160 @@
+-- Tabela Pacientes
+CREATE TABLE pacientes (
+    id_paciente INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf CHAR(11) NOT NULL UNIQUE,
+    data_nascimento DATE NOT NULL,
+    endereco VARCHAR(255) NOT NULL,
+    telefone VARCHAR(15) NOT NULL,
+    contato_emergencia VARCHAR(100) NOT NULL
+);
+
+-- Tabela Médicos
+CREATE TABLE medicos (
+    id_medico INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf CHAR(11) NOT NULL UNIQUE,
+    crm VARCHAR(20) NOT NULL UNIQUE,
+    telefone VARCHAR(15) NOT NULL
+);
+
+-- Tabela Atendimentos
+CREATE TABLE atendimentos (
+    id_atendimento INT AUTO_INCREMENT PRIMARY KEY,
+    data_hora DATETIME NOT NULL,
+    motivo_consulta TEXT NOT NULL,
+    diagnostico TEXT NOT NULL,
+    recomendacoes VARCHAR(100) NOT NULL,
+    id_paciente INT NOT NULL,
+    id_medico INT NOT NULL,
+    FOREIGN KEY (id_paciente) REFERENCES pacientes(id_paciente),
+    FOREIGN KEY (id_medico) REFERENCES medicos(id_medico)
+);
+
+-- Tabela Especialidade Médica
+CREATE TABLE especialidade_medica (
+    id_especialidade INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    codigo VARCHAR(10) NOT NULL,
+    descricao TEXT NOT NULL,
+    id_medico INT NOT NULL,
+    FOREIGN KEY (id_medico) REFERENCES medicos(id_medico)
+);
+
+-- Tabela Medicamentos
+CREATE TABLE medicamentos (
+    id_medicamento INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    fabricante VARCHAR(100) NOT NULL,
+    data_validade DATE NOT NULL,
+    lote VARCHAR(50) NOT NULL,
+    id_fornecedor INT NOT NULL,
+    FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id_fornecedor)
+);
+
+-- Tabela Fornecedores
+CREATE TABLE fornecedores (
+    id_fornecedor INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cnpj CHAR(14) NOT NULL UNIQUE,
+    endereco VARCHAR(255) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    representante_comercial VARCHAR(100) NOT NULL
+);
+
+-- Tabela Funcionários
+CREATE TABLE funcionarios (
+    id_funcionario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cpf CHAR(11) NOT NULL UNIQUE,
+    cargo VARCHAR(50) NOT NULL,
+    data_admissao DATE NOT NULL,
+    endereco VARCHAR(255) NOT NULL,
+    telefone VARCHAR(15) NOT NULL
+);
+
+-- Tabela Cirurgias
+CREATE TABLE cirurgias (
+    id_cirurgia INT AUTO_INCREMENT PRIMARY KEY,
+    data_hora DATETIME NOT NULL,
+    tipo VARCHAR(100) NOT NULL,
+    sala VARCHAR(50) NOT NULL,
+    status ENUM('agendada', 'realizada', 'cancelada') DEFAULT 'agendada',
+    observacoes TEXT,
+    id_paciente INT NOT NULL,
+    id_medico INT NOT NULL,
+    id_unidade INT NOT NULL,
+    FOREIGN KEY (id_paciente) REFERENCES pacientes(id_paciente),
+    FOREIGN KEY (id_medico) REFERENCES medicos(id_medico),
+    FOREIGN KEY (id_unidade) REFERENCES unidades_internacao(id_unidade)
+);
+
+-- Tabela Exames
+CREATE TABLE exames (
+    id_exame INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(50) NOT NULL,
+    data_realizacao DATE NOT NULL,
+    resultado VARCHAR(20) NOT NULL,
+    status ENUM('pendente', 'concluido') DEFAULT 'pendente',
+    id_atendimento INT NOT NULL,
+    FOREIGN KEY (id_atendimento) REFERENCES atendimentos(id_atendimento)
+);
+
+-- Tabela Unidades de Internação
+CREATE TABLE unidades_internacao (
+    id_unidade INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    localizacao VARCHAR(255) NOT NULL,
+    capacidade_total INT NOT NULL,
+    disponibilidade_atual INT NOT NULL
+);
+
+-- Tabela Paciente Unidade
+CREATE TABLE paciente_unidade (
+    id_paciente INT NOT NULL,
+    id_unidade INT NOT NULL,
+    data_entrada DATE NOT NULL,
+    data_saida DATE,
+    PRIMARY KEY (id_paciente, id_unidade),
+    FOREIGN KEY (id_paciente) REFERENCES pacientes(id_paciente),
+    FOREIGN KEY (id_unidade) REFERENCES unidades_internacao(id_unidade)
+);
+
+-- Tabela Cirurgia Medicamento
+CREATE TABLE cirurgia_medicamento (
+    id_cirurgia INT NOT NULL,
+    id_medicamento INT NOT NULL,
+    PRIMARY KEY (id_cirurgia, id_medicamento),
+    FOREIGN KEY (id_cirurgia) REFERENCES cirurgias(id_cirurgia),
+    FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id_medicamento)
+);
+
+-- Tabela Medicamento Fornecedor
+CREATE TABLE medicamento_fornecedor (
+    id_medicamento INT NOT NULL,
+    id_fornecedor INT NOT NULL,
+    PRIMARY KEY (id_medicamento, id_fornecedor),
+    FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id_medicamento),
+    FOREIGN KEY (id_fornecedor) REFERENCES fornecedores(id_fornecedor)
+);
+
+-- Tabela Unidade Funcionário
+CREATE TABLE unidade_funcionario (
+    id_unidade INT NOT NULL,
+    id_funcionario INT NOT NULL,
+    PRIMARY KEY (id_unidade, id_funcionario),
+    FOREIGN KEY (id_unidade) REFERENCES unidades_internacao(id_unidade),
+    FOREIGN KEY (id_funcionario) REFERENCES funcionarios(id_funcionario)
+);
+
+-- Tabela Prescrições
+CREATE TABLE prescricoes (
+    id_prescricao INT AUTO_INCREMENT PRIMARY KEY,
+    id_atendimento INT NOT NULL,
+    id_medicamento INT NOT NULL,
+    dosagem VARCHAR(20) NOT NULL,
+    duracao_uso INT NOT NULL,
+    frequencia INT NOT NULL,
+    FOREIGN KEY (id_atendimento) REFERENCES atendimentos(id_atendimento),
+    FOREIGN KEY (id_medicamento) REFERENCES medicamentos(id_medicamento)
+);
